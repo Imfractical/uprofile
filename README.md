@@ -1,6 +1,4 @@
 # uprofile
-A Django project showcasing user profiles
-
 For this project, you’ll build a form that takes in details about a registered user and displays those details on a profile page. The profile page should only be visible once the user has logged in. The profile page should include first name, last name, email, date of birth, confirm email, short bio and the option to upload an avatar
 
 You’ll also set up validation for email, date of birth and the biography. The date of birth validation should accept three date formats: YYYY-MM-DD, MM/DD/YYYY, or MM/DD/YY. The Email validation should check if the email addresses match and are in a valid format. The bio validation should check that the bio is 10 characters or longer and properly escapes HTML formatting
