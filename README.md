@@ -8,6 +8,6 @@ You’ll also create a "change password page" that updates the user’s password
 * not the same as current password
 * has a minimum length of 14 characters
 * uses both uppercase and lowercase letters
-* include one or more numerical digits
-* include one or more special characters, such as @, #, $
+* includes one or more numerical digits
+* includes one or more special characters, such as @, #, $
 * doesn't contain the username or parts of the user’s full name, such as their first name
