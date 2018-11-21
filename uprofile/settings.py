@@ -90,16 +90,25 @@ AUTH_USER_MODEL = 'accounts.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'accounts.password_validators.ContainsDigitValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'accounts.password_validators.ContainsBothCasesValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'accounts.password_validators.ContainsSpecialCharactersValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'accounts.password_validators.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 14,
+        }
+    },
+    {
+        'NAME': 'accounts.password_validators.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'accounts.password_validators.NumericPasswordValidator',
     },
 ]
 

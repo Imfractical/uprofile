@@ -9,11 +9,11 @@ from .models import User
 class UserCreationForm(forms.ModelForm):
     email1 = forms.EmailField(
         label='Email',
-        help_text='Enter your email',
+        help_text="Enter your email",
     )
     email2 = forms.EmailField(
         label='Email confirmation',
-        help_text='Enter the same email as before, for verification',
+        help_text="Enter the same email as before, for verification",
     )
     password1 = forms.CharField(
         label='Password',
@@ -25,7 +25,7 @@ class UserCreationForm(forms.ModelForm):
         label='Password confirmation',
         strip=False,
         widget=forms.PasswordInput,
-        help_text='Enter the same password as before, for verification',
+        help_text="Enter the same password as before, for verification",
     )
 
     class Meta:
@@ -42,7 +42,7 @@ class UserCreationForm(forms.ModelForm):
         password2 = self.cleaned_data.get('password2')
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError(
-                "The two password don't match",
+                "The two passwords don't match",
                 code='password_mismatch',
             )
 
