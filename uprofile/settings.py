@@ -30,7 +30,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'accounts',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -102,7 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'accounts.password_validators.MinimumLengthValidator',
         'OPTIONS': {
             'min_length': 14,
-        }
+        },
     },
     {
         'NAME': 'accounts.password_validators.UserAttributeSimilarityValidator',
