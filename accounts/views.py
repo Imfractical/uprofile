@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from .forms import UserCreationForm
 
 
-def create_user(request):
+def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
