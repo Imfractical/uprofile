@@ -1,7 +1,7 @@
 import re
-from difflib import FieldDoesNotExist, SequenceMatcher
+from difflib import SequenceMatcher
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 
 
 class ContainsDigitValidator:
@@ -50,11 +50,14 @@ class ContainsSpecialCharactersValidator:
             self.special_characters)
 
     def validate(self, password, user=None):
-        if not any([c in self.special_characters for c in password]):
+        if not any([(c in self.special_characters) for c in password]):
             raise ValidationError(
                 self.help_text,
                 code='password_no_special_characters',
             )
+
+    def get_help_text(self):
+        return self.help_text
 
 
 # All validators below this line are rewritten from Django's source
