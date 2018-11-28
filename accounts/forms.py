@@ -2,6 +2,7 @@ import datetime
 
 from django import forms
 from django.contrib.auth import password_validation
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 from .models import User
 
@@ -61,7 +62,7 @@ class UserCreationForm(forms.ModelForm):
 
     def clean_dob(self):
         dob = self.cleaned_data.get('dob')
-        if datetime.datetime.now - dob < 13:
+        if datetime.date.today() - dob < datetime.timedelta(days=(13*365)):
             raise forms.ValidationError(
                 "You're too young!",
                 code='underage',
@@ -87,3 +88,31 @@ class UserCreationForm(forms.ModelForm):
             user.save()
 
         return user
+
+
+class UserChangeForm(forms.ModelForm):
+    password = ReadOnlyPasswordHashField(
+        label='Password',
+        help_text="Raw passwords are not stored, so there is no way to see this "
+                  "user's password, but you can change the password using "
+                  "<a href=\"{}\">this form</a>",
+    )
+
+    class Meta:
+        model = User
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        password = self.fields.get('password')
+        if password:
+            password.help_text = password.help_text.format('../password/')
+        user_permissions = self.fields.get('user_permissions')
+        if user_permissions:
+            user_permissions.queryset = user_permissions.queryset.select_related('content_type')
+
+    def clean_password(self):
+        # Regardless of what the user provides, return the initial value.
+        # This is done here, rather than on the field, because the
+        # field does not have access to the initial value
+        return self.initial.get('password')
