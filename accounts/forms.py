@@ -1,8 +1,7 @@
 import datetime
 
 from django import forms
-from django.contrib.auth import password_validation
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.contrib.auth import authenticate, password_validation
 
 from .models import User
 
@@ -90,29 +89,101 @@ class UserCreationForm(forms.ModelForm):
         return user
 
 
-class UserChangeForm(forms.ModelForm):
-    password = ReadOnlyPasswordHashField(
+class AuthenticationForm(forms.Form):
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.TextInput(attrs={'autofocus': True}),
+    )
+    password = forms.CharField(
         label='Password',
-        help_text="Raw passwords are not stored, so there is no way to see this "
-                  "user's password, but you can change the password using "
-                  "<a href=\"{}\">this form</a>",
+        strip=False,
+        widget=forms.PasswordInput,
     )
 
-    class Meta:
-        model = User
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        self.user_cache = None
         super().__init__(*args, **kwargs)
-        password = self.fields.get('password')
-        if password:
-            password.help_text = password.help_text.format('../password/')
-        user_permissions = self.fields.get('user_permissions')
-        if user_permissions:
-            user_permissions.queryset = user_permissions.queryset.select_related('content_type')
 
-    def clean_password(self):
-        # Regardless of what the user provides, return the initial value.
-        # This is done here, rather than on the field, because the
-        # field does not have access to the initial value
-        return self.initial.get('password')
+    def clean(self):
+        email = self.cleaned_data.get('email')
+        password = self.cleaned_data.get('password')
+
+        if email is not None and password:
+            self.user_cache = authenticate(self.request, username=email, password=password)
+            if self.user_cache is None:
+                raise self.get_invalid_login_error()
+            else:
+                self.confirm_login_allowed(self.user_cache)
+
+        return self.cleaned_data
+
+    def confirm_login_allowed(self, user):
+        if not user.is_active:
+            raise forms.ValidationError(
+                "This account is inactive",
+                code='inactive',
+            )
+
+    def get_user(self):
+        return self.user_cache
+
+    def get_invalid_login_error(self):
+        return forms.ValidationError(
+            "Please enter a correct email and password",
+            code='invalid_login',
+        )
+
+
+class ChangePasswordForm(forms.Form):
+    old_password = forms.CharField(
+        label="Old password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autofocus': True}),
+    )
+    new_password1 = forms.CharField(
+        label="New password",
+        widget=forms.PasswordInput,
+        strip=False,
+        help_text=password_validation.password_validators_help_text_html(),
+    )
+    new_password2 = forms.CharField(
+        label="New password confirmation",
+        strip=False,
+        widget=forms.PasswordInput,
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_new_password2(self):
+        password1 = self.cleaned_data.get('new_password1')
+        password2 = self.cleaned_data.get('new_password2')
+        if password1 and password2:
+            if password1 != password2:
+                raise forms.ValidationError(
+                    "The two passwords don't match",
+                    code='password_mismatch',
+                )
+        password_validation.validate_password(password2, self.user)
+        return password2
+
+    def save(self, commit=True):
+        password = self.cleaned_data["new_password1"]
+        self.user.set_password(password)
+        if commit:
+            self.user.save()
+        return self.user
+
+    field_order = ['old_password', 'new_password1', 'new_password2']
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data["old_password"]
+        if not self.user.check_password(old_password):
+            raise forms.ValidationError(
+                "Your old password was entered incorrectly. Please enter it again",
+                code='password_incorrect',
+            )
+
+        return old_password
