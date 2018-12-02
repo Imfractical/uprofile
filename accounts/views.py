@@ -58,3 +58,11 @@ def signout(request):
     messages.success(request, "Logout successful. Goodbye")
 
     return redirect('home')
+
+
+def home(request):
+    pass
+
+
+def profile(request):
+    pass
