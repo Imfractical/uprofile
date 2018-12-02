@@ -45,7 +45,7 @@ class ContainsSpecialCharactersValidator:
     Validate that the password has a special character
     """
     def __init__(self):
-        self.special_characters = '!@#$%+^&*()-_/?,.[]}{<>`~\\\'\"'
+        self.special_characters = '!@#$%+^&*()-_/?,.[]}{><`~;:\\\'\"'
         self.help_text = "Password must contain at least one of: {}".format(
             self.special_characters)
 
