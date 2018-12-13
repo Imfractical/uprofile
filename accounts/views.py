@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
@@ -53,14 +53,6 @@ def signin(request):
         form = AuthenticationForm()
 
     return render(request, 'accounts/login.html', {'form': form})
-
-
-@login_required
-def logout(request):
-    logout(request)
-    messages.success(request, "Logout successful. Goodbye")
-
-    return redirect('home')
 
 
 def home(request):
