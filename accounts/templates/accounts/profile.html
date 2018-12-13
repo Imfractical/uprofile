@@ -7,4 +7,5 @@
     {% csrf_token %}
     {{ form.as_p }}
 </form>
+<a href="{% url 'accounts:change_password' %}">Change password</a>
 {% endblock %}

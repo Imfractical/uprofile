@@ -16,6 +16,23 @@
             crossorigin="anonymous"></script>
 
     <body>
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <section>
+            <a href="{% url 'accounts:home' %}">Home</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'accounts:profile' %}">View your Profile</a>
+            <a href="{% url 'accounts:logout' %}">Logout</a>
+            {% else %}
+            <a href="{% url 'accounts:login' %}">Login</a>
+            <a href="{% url 'accounts:register' %}">Register an account</a>
+            {% endif %}
+        </section>
         {% block content %}{% endblock %}
     </body>
 </html>

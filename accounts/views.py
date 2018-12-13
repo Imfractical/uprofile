@@ -1,12 +1,13 @@
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 
-from .forms import AuthenticationForm, UserCreationForm, ProfileForm
+from .forms import AuthenticationForm, ChangePasswordForm, UserCreationForm, ProfileForm
 from .models import User
 
 
+@user_passes_test(lambda u: u.is_anonymous)
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -28,6 +29,7 @@ def register(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
+@user_passes_test(lambda u: u.is_anonymous)
 def signin(request):
     if request.method == 'POST':
         form = AuthenticationForm(request.POST)
@@ -59,6 +61,12 @@ def home(request):
     return render(request, 'accounts/home.html')
 
 
+def signout(request):
+    logout(request)
+
+    return redirect('accounts:home')
+
+
 @login_required
 def profile(request, user_pk=None):
     if not user_pk:
@@ -71,8 +79,29 @@ def profile(request, user_pk=None):
         if form.is_valid():
             form.save()
             messages.success(request, "Profile saved successfully")
+    else:
+        messages.error(request, "Could not update password")
 
     return render(request, 'accounts/profile.html', {
         'form': form,
         'user': user,
+    })
+
+
+@login_required
+def change_password(request):
+    user = request.user
+    form = ChangePasswordForm(user)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            messages.success(request, "Password changed successfully")
+
+            return redirect('accounts:profile')
+
+    return render(request, 'accounts/change_password.html', {
+            'form': form,
+            'user': user,
     })

@@ -167,6 +167,7 @@ class ChangePasswordForm(forms.Form):
                     code='password_mismatch',
                 )
         password_validation.validate_password(password2, self.user)
+
         return password2
 
     def save(self, commit=True):
@@ -174,6 +175,7 @@ class ChangePasswordForm(forms.Form):
         self.user.set_password(password)
         if commit:
             self.user.save()
+
         return self.user
 
     def clean_old_password(self):
