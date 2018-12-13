@@ -1,12 +1,12 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ block.super }} - Signup{% endblock %}
+{% block title %}Signup - {{ block.super }}{% endblock %}
 
 {% block content %}
-    <h2>Signup</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Create account</button>
-    </form>
+<h2>Signup</h2>
+<form method="POST" action="{% url 'accounts:signup' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="button-primary">Create account</button>
+</form>
 {% endblock %}
