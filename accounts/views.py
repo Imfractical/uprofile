@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
-from .forms import AuthenticationForm, UserCreationForm
+from .forms import AuthenticationForm, UserCreationForm, ProfileForm
 from .models import User
 
 
-def signup(request):
+def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -20,11 +21,11 @@ def signup(request):
                 "User registration successful! Welcome, {}".format(user.first_name)
             )
 
-            return redirect('accounts:profile', args=[user.id])
+            return redirect('accounts:profile')
     else:
         form = UserCreationForm()
 
-    return render(request, 'accounts/signup.html', {'form': form})
+    return render(request, 'accounts/register.html', {'form': form})
 
 
 def signin(request):
@@ -51,10 +52,11 @@ def signin(request):
     else:
         form = AuthenticationForm()
 
-    return render(request, 'accounts/signin.html', {'form': form})
+    return render(request, 'accounts/login.html', {'form': form})
 
 
-def signout(request):
+@login_required
+def logout(request):
     logout(request)
     messages.success(request, "Logout successful. Goodbye")
 
@@ -62,8 +64,23 @@ def signout(request):
 
 
 def home(request):
-    pass
+    return render(request, 'accounts/home.html')
 
 
-def profile(request):
-    pass
+@login_required
+def profile(request, user_pk=None):
+    if not user_pk:
+        user = request.user
+    else:
+        user = User.objects.get(pk=user_pk)
+    form = ProfileForm(instance=user)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile saved successfully")
+
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'user': user,
+    })

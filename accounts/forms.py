@@ -187,3 +187,9 @@ class ChangePasswordForm(forms.Form):
             )
 
         return old_password
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['avatar', 'first_name', 'last_name', 'dob', 'bio', 'location', 'relationship']
