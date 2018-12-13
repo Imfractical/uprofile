@@ -176,8 +176,6 @@ class ChangePasswordForm(forms.Form):
             self.user.save()
         return self.user
 
-    field_order = ['old_password', 'new_password1', 'new_password2']
-
     def clean_old_password(self):
         old_password = self.cleaned_data["old_password"]
         if not self.user.check_password(old_password):
