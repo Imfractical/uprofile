@@ -36,6 +36,7 @@ def signin(request):
                 user = form.user_cache
                 if user.is_active:
                     login(request, user)
+
                     return redirect('accounts:profile', args=[user.id])
                 else:
                     messages.error(
