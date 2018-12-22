@@ -76,11 +76,11 @@ def profile(request, user_pk=None):
     form = ProfileForm(instance=user)
 
     if request.method == 'POST':
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Profile saved successfully")
-    else:
-        messages.error(request, "Could not update password")
+        form = ProfileForm(request.POST, instance=user)
+        form.save()
+        messages.success(request, "Profile saved successfully")
+
+        return redirect('accounts:profile')
 
     return render(request, 'accounts/profile.html', {
         'form': form,
@@ -100,6 +100,8 @@ def change_password(request):
             messages.success(request, "Password changed successfully")
 
             return redirect('accounts:profile')
+        else:
+            messages.error(request, "Password could not be changed")
 
     return render(request, 'accounts/change_password.html', {
             'form': form,

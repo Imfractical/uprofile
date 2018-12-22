@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.core.validators import MinLengthValidator
 from django.db import models
 
 
@@ -36,7 +37,12 @@ class User(AbstractBaseUser):
         upload_to='avatars/',
         help_text="A profile image used to represent you! Pick something nice",
     )
-    bio = models.CharField(max_length=1000, blank=True, help_text="Tell us your life story")
+    bio = models.CharField(
+        max_length=1000,
+        blank=True,
+        help_text="Tell us your life story",
+        validators=[MinLengthValidator(10)],
+    )
     location = models.CharField(max_length=100, blank=True, help_text="Where do you live?")
     relationship = models.CharField(max_length=100, blank=True, help_text="Who are you seeing?")
 
