@@ -1,10 +1,24 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ user.first_name }}'s Profile - {{ block.super }}{% endblock %}
+{% block title %}Your Profile - {{ block.super }}{% endblock %}
 
 {% block content %}
 <form>
-    {% csrf_token %}
-    {{ form.as_p }}
+    {% if user.profile.avatar %}
+    avatar
+    <img src="/media/{{ user.profile.avatar }}">
+    <br>
+    {% endif %}
+    {% for field in user_form %}
+        {{ field.label }}: {{ field.value }}
+        <br>
+    {% endfor %}
+    {% for field in profile_form %}
+        {% if field.name != 'avatar' %}
+        {{ field.label }}: {{ field.value }}
+        <br>
+        {% endif %}
+    {% endfor %}
 </form>
+<a href="{% url 'accounts:edit_profile' %}">Edit your profile</a>
 {% endblock %}

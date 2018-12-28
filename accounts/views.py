@@ -1,10 +1,16 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
+from django.contrib.auth.models import User
+from django.db import transaction
 from django.shortcuts import redirect, render
 
-from .forms import AuthenticationForm, ChangePasswordForm, UserCreationForm, ProfileForm
-from .models import User
+from .forms import ProfileForm, UserForm
+
+
+def home(request):
+    return render(request, 'accounts/home.html')
 
 
 @user_passes_test(lambda u: u.is_anonymous)
@@ -12,17 +18,14 @@ def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            email = form.cleaned_data['email1']
-            password = form.cleaned_data['password1']
-            login(request, authenticate(email=email, password=password))
-            user = User.objects.get(email=email)
+            user = form.save()
+            login(request, user)
             messages.success(
                 request,
                 "User registration successful! Welcome, {}".format(user.first_name)
             )
 
-            return redirect('accounts:profile')
+            return redirect('accounts:view_profile')
     else:
         form = UserCreationForm()
 
@@ -46,19 +49,15 @@ def signin(request):
                         request,
                         "This account is inactive",
                     )
-            else:
-                messages.error(
-                    request,
-                    "Please enter a correct email and password",
-                )
+        else:
+            messages.error(
+                request,
+                "Please enter a correct email and password",
+            )
     else:
         form = AuthenticationForm()
 
     return render(request, 'accounts/login.html', {'form': form})
-
-
-def home(request):
-    return render(request, 'accounts/home.html')
 
 
 def signout(request):
@@ -73,36 +72,45 @@ def view_profile(request, user_pk=None):
         user = request.user
     else:
         user = User.objects.get(pk=user_pk)
-    form = ProfileForm(instance=user)
+    user_form = UserForm(instance=user)
+    profile_form = ProfileForm(instance=user.profile)
 
-    return render(request, 'accounts/profile.html', {
-        'form': form,
+    return render(request, 'accounts/view_profile.html', {
         'user': user,
+        'user_form': user_form,
+        'profile_form': profile_form,
     })
 
 
 @login_required
+@transaction.atomic
 def edit_profile(request):
     user = request.user
-    form = ProfileForm(instance=user)
-
     if request.method == 'POST':
-        form = ProfileForm(request.POST, instance=user)
-        form.save()
-        messages.success(request, "Profile saved successfully")
+        user_form = UserForm(request.POST, instance=user)
+        profile_form = ProfileForm(request.POST, request.FILES, instance=user.profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, "Successfully updated profile")
 
-        return redirect('accounts:profile')
+            return redirect('accounts:view_profile')
+        else:
+            messages.error(request, "Couldn't update profile")
+    else:
+        user_form = UserForm(instance=request.user)
+        profile_form = ProfileForm(instance=request.user.profile)
 
-    return render(request, 'accounts/profile.html', {
-        'form': form,
-        'user': user,
+    return render(request, 'accounts/edit_profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
     })
 
 
 @login_required
 def change_password(request):
     user = request.user
-    form = ChangePasswordForm(user)
+    form = PasswordChangeForm(user)
 
     if request.method == 'POST':
         if form.is_valid():
@@ -110,9 +118,7 @@ def change_password(request):
             update_session_auth_hash(request, form.user)
             messages.success(request, "Password changed successfully")
 
-            return redirect('accounts:profile')
-        else:
-            messages.error(request, "Password could not be changed")
+            return redirect('accounts:view_profile')
 
     return render(request, 'accounts/change_password.html', {
             'form': form,
