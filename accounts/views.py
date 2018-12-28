@@ -68,11 +68,22 @@ def signout(request):
 
 
 @login_required
-def profile(request, user_pk=None):
+def view_profile(request, user_pk=None):
     if not user_pk:
         user = request.user
     else:
         user = User.objects.get(pk=user_pk)
+    form = ProfileForm(instance=user)
+
+    return render(request, 'accounts/profile.html', {
+        'form': form,
+        'user': user,
+    })
+
+
+@login_required
+def edit_profile(request):
+    user = request.user
     form = ProfileForm(instance=user)
 
     if request.method == 'POST':
