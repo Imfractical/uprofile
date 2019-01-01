@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
+from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import redirect, render
@@ -30,34 +30,6 @@ def register(request):
         form = UserCreationForm()
 
     return render(request, 'accounts/register.html', {'form': form})
-
-
-@user_passes_test(lambda u: u.is_anonymous)
-def signin(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            if form.user_cache is not None:
-                user = form.user_cache
-                if user.is_active:
-                    login(request, user)
-
-                    return redirect('accounts:profile', args=[user.id])
-                else:
-                    messages.error(
-                        request,
-                        "This account is inactive",
-                    )
-        else:
-            messages.error(
-                request,
-                "Please enter a correct email and password",
-            )
-    else:
-        form = AuthenticationForm()
-
-    return render(request, 'accounts/login.html', {'form': form})
 
 
 def signout(request):
@@ -109,18 +81,17 @@ def edit_profile(request):
 
 @login_required
 def change_password(request):
-    user = request.user
-    form = PasswordChangeForm(user)
-
     if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
-            form.save()
-            update_session_auth_hash(request, form.user)
-            messages.success(request, "Password changed successfully")
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Successfully updated password")
 
             return redirect('accounts:view_profile')
+        else:
+            messages.error(request, "Password could not be updated")
+    else:
+        form = PasswordChangeForm(request.user)
 
-    return render(request, 'accounts/change_password.html', {
-            'form': form,
-            'user': user,
-    })
+    return render(request, 'accounts/change_password.html', {'form': form})
